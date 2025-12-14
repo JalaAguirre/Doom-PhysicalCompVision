@@ -157,6 +157,5 @@ while capture.isOpened():
     if cv2.waitKey(5) & 0xFF == ord('q'):
         break
 
-
 capture.release()
 cv2.destroyAllWindows()
