@@ -1,4 +1,3 @@
-# Import Libraries
 import cv2
 import time
 import mediapipe as mp
@@ -6,7 +5,7 @@ from pynput.keyboard import Controller
 
 
 keyboard = Controller()
-KEY_PRESS_MAP = {
+KEY_PRESS_COORD = {
     1: '1',  
     2: '2',
     3: '3',
@@ -34,7 +33,7 @@ TIP_IDS = [4, 8, 12, 16, 20]
 
 # Mapping of a finger's tip ID to its lower joint
 # TIP_TO_JOINT: {Tip_ID: Joint_ID}
-JOINT_IDS = [2, 6, 10, 14, 18]
+PIP_JOINT_IDS = [2, 6, 10, 14, 18]
 
 def count_extended_fingers(hand_landmarks, is_right_hand):
     if not hand_landmarks:
@@ -44,7 +43,7 @@ def count_extended_fingers(hand_landmarks, is_right_hand):
     landmarks = hand_landmarks.landmark
     
     
-    # 1. Check the four main fingers
+    # Checking counts for four fingers
     # Finger is up: The tip is higher than the base joint
     for tip_index in TIP_IDS[1:]: 
         joint_index = tip_index - 2 
@@ -53,19 +52,20 @@ def count_extended_fingers(hand_landmarks, is_right_hand):
         if landmarks[tip_index].y < landmarks[joint_index].y:
             finger_count += 1
             
-    # 2. Check the THUMB
-    # Thumb is up: The tip (4) is horizontally further out than the base joint
+    # Checking counts for thumbs
+    # Thumb is up: The tip joint (4) is horizontally further out than the PIP joint (2)
     thumb_tip_x = landmarks[TIP_IDS[0]].x   
     thumb_mcp_x = landmarks[TIP_IDS[0] - 2].x 
     
     # For a right hand 
     if is_right_hand:
-        # This is the primary indicator of an open thumb, regardless of vertical tilt.
+        # A primary indicator of an open thumb, regardless of vertical tilt.
         if thumb_tip_x > thumb_mcp_x * 1.05:
              finger_count += 1
     
-    # For a left hand (tip extends left/smaller X)
+    # For a left hand 
     else: 
+        # A primary indicator of an open thumb, tip extends left/smaller X.
         if thumb_tip_x < thumb_mcp_x * 0.95:
             finger_count += 1
             
@@ -82,11 +82,10 @@ while capture.isOpened():
     ret, frame = capture.read()
     frame = cv2.resize(frame, (800, 600))
 
-    # Get frame dimensions
     h, w, c = frame.shape
     
     # Calculate the Y-axis for threshold
-    TOP_THIRD_THRESHOLD_NORM = 1.0 / 3.0
+    TOP_THIRD_THRESHOLD_AREA = 1.0 / 3.0
 
     image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
@@ -101,13 +100,13 @@ while capture.isOpened():
     right_count = 0
     left_count = 0
 
-    # Checking if a hand is in the top third
+    # Checking if a hand is in the threshold area
     def is_in_top_third(landmarks):
         if not landmarks:
             return False
         # Use the wrist landmark as a reference point
         wrist_y_norm = landmarks.landmark[0].y
-        return wrist_y_norm < TOP_THIRD_THRESHOLD_NORM
+        return wrist_y_norm < TOP_THIRD_THRESHOLD_AREA
         
     
     # Process Right Hand
@@ -121,24 +120,23 @@ while capture.isOpened():
     total_count = right_count + left_count
     
     # Keyboard Control Input
-    if total_count in KEY_PRESS_MAP:
-        key = KEY_PRESS_MAP[total_count]
+    if total_count in KEY_PRESS_COORD:
+        key = KEY_PRESS_COORD[total_count]
         keyboard.press(key)
         # Display the key pressed prominently
         cv2.putText(image, f"KEY PRESSED: {key}", (w - 300, 50), cv2.FONT_HERSHEY_DUPLEX, 1, (0, 255, 0), 2)
 
 
-    # 1/3 Threshold
-    y_pixel_threshold = int(h * TOP_THIRD_THRESHOLD_NORM)
+    # Label for 1/3 Threshold
+    y_pixel_threshold = int(h * TOP_THIRD_THRESHOLD_AREA)
     cv2.line(image, (0, y_pixel_threshold), (w, y_pixel_threshold), (0, 255, 255), 2)
-    cv2.putText(image, "Top 1/3 Activation Threshold", (w - 300, y_pixel_threshold - 10), 
+    cv2.putText(image, "Threshold Area", (w - 300, y_pixel_threshold - 10), 
                 cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
 
-
-    # Drawing Right hand Land Marks
+    # Label for right hand landmarks
     mp_drawing.draw_landmarks(image, results.right_hand_landmarks, mp_holistic.HAND_CONNECTIONS)
 
-    # Drawing Left hand Land Marks
+    # Label for left hand landmarks
     mp_drawing.draw_landmarks(image, results.left_hand_landmarks, mp_holistic.HAND_CONNECTIONS)
     
     # Calculating the FPS

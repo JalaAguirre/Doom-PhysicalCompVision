@@ -11,7 +11,7 @@ The following hardware and its controls:
 
 Finger Detection and Strafe Threshold Prerequisite:
 - Python Version: 3.12.7
-Type these commands in the terminal:
+To create a new environment:
 - & D:/Downloads/Doom-PhysicalCompVision/.venv/Scripts/Activate.ps1
 - & "C:\Users\...\Programs\Python\Python312\python.exe" -m venv mp_compatible_env
 - .\mp_compatible_env\Scripts\Activate.ps1
