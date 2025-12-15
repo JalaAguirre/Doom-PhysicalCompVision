@@ -138,10 +138,8 @@ def main():
 
             width = frame.shape[1]
 
-            # Process the frame
-            display_frame, mask = process_frame(frame, fgbg, width)
+            display_frame = process_frame(frame, fgbg, width)
 
-            # Resulting Frame
             cv2.imshow('Tri-Zone Gesture Key Press Control', display_frame)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
