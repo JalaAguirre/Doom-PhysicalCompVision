@@ -9,7 +9,7 @@ KEY_LEFT = ','
 KEY_RIGHT = '.'
 
 # Threshold
-MIN_MOVEMENT_AREA = 1500
+MIN_MOVEMENT_AREA = 5000
 
 def process_frame(frame, fgbg, width):
 

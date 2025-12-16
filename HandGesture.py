@@ -13,7 +13,6 @@ KEY_PRESS_COORD = {
     5: '5',
     6: '6',
     7: '7',
-    8: '8',
 }
 
 # Initializing the Model
